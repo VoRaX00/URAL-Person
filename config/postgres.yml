@@ -1,0 +1,5 @@
+host: "localhost"
+port: 6792
+dbname: "persons_db"
+username: "postgres"
+ssl_mode: "disable"
