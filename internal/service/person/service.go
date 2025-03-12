@@ -1,12 +1,15 @@
 package person
 
 import (
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"persons/internal/domain"
 	"persons/internal/domain/models"
+	"persons/internal/service"
+	"persons/internal/storage/postgres"
 	"persons/pkg/mapper"
 )
 
@@ -44,7 +47,6 @@ func (s *Service) GetAll() ([]domain.GetPerson, error) {
 	log.Info("getting all persons")
 	result, err := s.provider.GetAll()
 	if err != nil {
-		// TODO: Обработка ошибок
 		log.Error("failed to get all persons", slog.String("err", err.Error()))
 		return nil, err
 	}
@@ -56,7 +58,6 @@ func (s *Service) GetAll() ([]domain.GetPerson, error) {
 		persons[i] = mapper.PersonToGet(person)
 	}
 	log.Info("got all persons")
-
 	return persons, nil
 }
 
@@ -69,8 +70,12 @@ func (s *Service) GetById(id uuid.UUID) (*domain.GetPerson, error) {
 	log.Info("getting person by id")
 	res, err := s.provider.GetById(id)
 	if err != nil {
+		if errors.Is(err, postgres.ErrNotFound) {
+			log.Error("person not found")
+			return nil, fmt.Errorf("%s: %w", op, service.ErrNotFound)
+		}
 		log.Error("failed to get person by id", slog.String("err", err.Error()))
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	log.Info("got person by id")
 
@@ -97,10 +102,13 @@ func (s *Service) Create(person domain.RegisterPerson) (uuid.UUID, error) {
 
 	err = s.saver.Save(result)
 	if err != nil {
+		if errors.Is(err, postgres.ErrConflict) {
+			log.Error("conflict save person")
+			return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+		}
 		log.Error("failed to save person", slog.String("err", err.Error()))
-		return uuid.Nil, err
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
 	}
 	log.Info("person created")
-
 	return result.Id, nil
 }

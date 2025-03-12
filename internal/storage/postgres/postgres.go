@@ -1,5 +1,7 @@
 package postgres
 
+import "errors"
+
 type Config struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
@@ -8,3 +10,8 @@ type Config struct {
 	Database string `yaml:"dbname"`
 	SSLMode  string `yaml:"ssl_mode"`
 }
+
+var (
+	ErrNotFound = errors.New("not found")
+	ErrConflict = errors.New("conflict")
+)

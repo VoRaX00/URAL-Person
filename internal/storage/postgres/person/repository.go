@@ -1,10 +1,14 @@
 package person
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"persons/internal/domain/models"
+	"persons/internal/storage/postgres"
 )
 
 type Repository struct {
@@ -26,6 +30,10 @@ func (r *Repository) Save(person models.Person) error {
 
 	_, err := r.db.Exec(query, person.Id, person.Email, person.Login, person.PasswordHash)
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			return fmt.Errorf("%s: %w", op, postgres.ErrConflict)
+		}
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	return nil
@@ -41,6 +49,9 @@ func (r *Repository) GetById(id uuid.UUID) (*models.Person, error) {
 				WHERE id = $1`
 	err := r.db.Get(&person, query, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("%s: %w", op, postgres.ErrNotFound)
+		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	return &person, nil
