@@ -32,7 +32,7 @@ func (r *Repository) Save(person models.Person) error {
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
-			return fmt.Errorf("%s: %w", op, postgres.ErrConflict)
+			return fmt.Errorf("%s: %w", op, postgres.ErrAlreadyExists)
 		}
 		return fmt.Errorf("%s: %w", op, err)
 	}

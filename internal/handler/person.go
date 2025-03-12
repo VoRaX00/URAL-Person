@@ -2,11 +2,13 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"log/slog"
 	"net/http"
 	"persons/internal/domain"
+	"persons/internal/service"
 )
 
 type PersonService interface {
@@ -32,7 +34,11 @@ func (h *Handler) getPerson(w http.ResponseWriter, r *http.Request) {
 	log.Info("getting person")
 	person, err := h.service.GetById(id)
 	if err != nil {
-		// TODO: Обработка ошибки, если пользователь не найден
+		if errors.Is(err, service.ErrNotFound) {
+			log.Error("person not found")
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 		log.Error("error with getting person", slog.String("err", err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -92,6 +98,11 @@ func (h *Handler) createPerson(w http.ResponseWriter, r *http.Request) {
 	log.Info("creating person")
 	id, err := h.service.Create(person)
 	if err != nil {
+		if errors.Is(err, service.ErrAlreadyExists) {
+			log.Error("person already exists")
+			w.WriteHeader(http.StatusConflict)
+			return
+		}
 		log.Error("error with creating person", slog.String("err", err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
 		return

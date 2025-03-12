@@ -102,9 +102,9 @@ func (s *Service) Create(person domain.RegisterPerson) (uuid.UUID, error) {
 
 	err = s.saver.Save(result)
 	if err != nil {
-		if errors.Is(err, postgres.ErrConflict) {
+		if errors.Is(err, postgres.ErrAlreadyExists) {
 			log.Error("conflict save person")
-			return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+			return uuid.Nil, fmt.Errorf("%s: %w", op, service.ErrAlreadyExists)
 		}
 		log.Error("failed to save person", slog.String("err", err.Error()))
 		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
