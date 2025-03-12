@@ -18,7 +18,14 @@ func NewHandler(log *slog.Logger, service PersonService) *Handler {
 		log:     log,
 		service: service,
 	}
+
 	return h
+}
+
+func (h *Handler) initRoutes() {
+	h.mux.HandleFunc("/api/v1", h.getAllPerson).Methods(http.MethodGet)
+	h.mux.HandleFunc("/api/v1/{id}", h.getPerson).Methods(http.MethodGet)
+	h.mux.HandleFunc("/api/v1", h.createPerson).Methods(http.MethodPost)
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

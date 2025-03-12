@@ -13,7 +13,11 @@ func init() {
 func upPersons(ctx context.Context, tx *sql.Tx) error {
 	query := `CREATE TABLE IF NOT EXISTS persons (
     	id UUID PRIMARY KEY NOT NULL,
-    	name TEXT NOT NULL 
+    	email TEXT NOT NULL UNIQUE,
+    	login VARCHAR(40) NOT NULL,
+    	about_me TEXT NOT NULL,
+    	password_hash TEXT NOT NULL,
+    	image BYTEA NOT NULL
 	)`
 
 	if _, err := tx.ExecContext(ctx, query); err != nil {
