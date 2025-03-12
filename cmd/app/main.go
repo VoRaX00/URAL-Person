@@ -39,7 +39,7 @@ func main() {
 
 	pg := setupPostgres(configPostgres)
 	personRepository := personrepo.NewRepository(pg)
-	personService := person.NewService(log, personRepository)
+	personService := person.NewService(log, personRepository, personRepository)
 	h := handler.NewHandler(log, personService)
 
 	srv := setupServer(configServer, h)

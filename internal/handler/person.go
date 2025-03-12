@@ -11,7 +11,7 @@ import (
 
 type PersonService interface {
 	GetAll() ([]domain.GetPerson, error)
-	GetById(id uuid.UUID) (domain.GetPerson, error)
+	GetById(id uuid.UUID) (*domain.GetPerson, error)
 	Create(person domain.RegisterPerson) (uuid.UUID, error)
 }
 
@@ -84,7 +84,7 @@ func (h *Handler) createPerson(w http.ResponseWriter, r *http.Request) {
 	var person domain.RegisterPerson
 	err := json.NewDecoder(r.Body).Decode(&person)
 	if err != nil {
-		log.Error("error unmarshaling person", slog.String("err", err.Error()))
+		log.Error("error unmarshalling person", slog.String("err", err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

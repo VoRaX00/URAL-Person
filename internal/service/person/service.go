@@ -1,18 +1,106 @@
 package person
 
-import "log/slog"
+import (
+	"fmt"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+	"log/slog"
+	"persons/internal/domain"
+	"persons/internal/domain/models"
+	"persons/pkg/mapper"
+)
 
-type Repository interface {
+type Saver interface {
+	Save(person models.Person) error
+}
+
+type Provider interface {
+	GetById(id uuid.UUID) (*models.Person, error)
+	GetAll() ([]models.Person, error)
 }
 
 type Service struct {
-	log        *slog.Logger
-	repository Repository
+	log      *slog.Logger
+	saver    Saver
+	provider Provider
 }
 
-func NewService(log *slog.Logger, repository Repository) *Service {
+func NewService(log *slog.Logger,
+	saver Saver,
+	provider Provider) *Service {
 	return &Service{
-		log:        log,
-		repository: repository,
+		log:      log,
+		saver:    saver,
+		provider: provider,
 	}
+}
+
+func (s *Service) GetAll() ([]domain.GetPerson, error) {
+	const op = "service.GetAll"
+	log := s.log.With(
+		slog.String("op", op),
+	)
+
+	log.Info("getting all persons")
+	result, err := s.provider.GetAll()
+	if err != nil {
+		// TODO: Обработка ошибок
+		log.Error("failed to get all persons", slog.String("err", err.Error()))
+		return nil, err
+	}
+	log.Info("got all persons")
+
+	persons := make([]domain.GetPerson, len(result))
+	log.Info("mapping all persons")
+	for i, person := range result {
+		persons[i] = mapper.PersonToGet(person)
+	}
+	log.Info("got all persons")
+
+	return persons, nil
+}
+
+func (s *Service) GetById(id uuid.UUID) (*domain.GetPerson, error) {
+	const op = "service.GetById"
+	log := s.log.With(
+		slog.String("op", op),
+	)
+
+	log.Info("getting person by id")
+	res, err := s.provider.GetById(id)
+	if err != nil {
+		log.Error("failed to get person by id", slog.String("err", err.Error()))
+		return nil, err
+	}
+	log.Info("got person by id")
+
+	person := mapper.PersonToGet(*res)
+	return &person, nil
+}
+
+func (s *Service) Create(person domain.RegisterPerson) (uuid.UUID, error) {
+	const op = "service.Create"
+	log := s.log.With(
+		slog.String("op", op),
+	)
+
+	log.Info("creating person")
+	result := mapper.RegisterToPerson(person)
+	result.Id = uuid.New()
+
+	passHash, err := bcrypt.GenerateFromPassword([]byte(result.PasswordHash), bcrypt.DefaultCost)
+	if err != nil {
+		log.Error("failed to hash password", err.Error())
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+	}
+	result.PasswordHash = string(passHash)
+
+	err = s.saver.Save(result)
+	if err != nil {
+		log.Error("failed to save person", slog.String("err", err.Error()))
+		return uuid.Nil, err
+	}
+	log.Info("person created")
+
+	return result.Id, nil
 }

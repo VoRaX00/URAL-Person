@@ -25,6 +25,7 @@ type Server struct {
 func New(handler http.Handler, config Config) *Server {
 	return &Server{
 		server: &http.Server{
+			Addr:         config.Addr,
 			Handler:      handler,
 			ReadTimeout:  config.ReadTimeout,
 			WriteTimeout: config.WriteTimeout,
