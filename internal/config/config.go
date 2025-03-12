@@ -3,7 +3,9 @@ package config
 import (
 	"flag"
 	"github.com/ilyakaznacheev/cleanenv"
+	_ "github.com/lib/pq"
 	"os"
+	_ "persons/migrations"
 )
 
 type Logger struct {

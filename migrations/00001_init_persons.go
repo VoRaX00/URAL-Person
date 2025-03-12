@@ -17,7 +17,7 @@ func upPersons(ctx context.Context, tx *sql.Tx) error {
     	login VARCHAR(40) NOT NULL,
     	about_me TEXT NOT NULL,
     	password_hash TEXT NOT NULL,
-    	image BYTEA NOT NULL
+    	image BYTEA
 	)`
 
 	if _, err := tx.ExecContext(ctx, query); err != nil {

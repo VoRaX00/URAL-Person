@@ -1,0 +1,10 @@
+db:
+  driver: "postgres"
+  host: "localhost"
+  port: 6792
+  dbname: "persons_db"
+  username: "postgres"
+  ssl_mode: "disable"
+  is_drop: false
+
+migrations_path: "./migrations"
