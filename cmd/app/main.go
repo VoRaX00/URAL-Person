@@ -13,9 +13,9 @@ import (
 	"persons/internal/app/server"
 	"persons/internal/config"
 	"persons/internal/handler"
-	"persons/internal/service/person"
+	"persons/internal/service/users"
 	"persons/internal/storage/postgres"
-	personrepo "persons/internal/storage/postgres/person"
+	personrepo "persons/internal/storage/postgres/users"
 	"syscall"
 )
 
@@ -91,7 +91,7 @@ func setupPostgres(configPath string) *sqlx.DB {
 	cfg.Password = os.Getenv("DB_PASSWORD")
 
 	db, err := sqlx.Open("postgres",
-		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		fmt.Sprintf("host=%s port=%d users=%s password=%s dbname=%s sslmode=%s",
 			cfg.Host, cfg.Port, cfg.Username, cfg.Password, cfg.Database, cfg.SSLMode),
 	)
 

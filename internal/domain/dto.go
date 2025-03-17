@@ -1,11 +1,11 @@
 package domain
 
-type GetPerson struct {
+type GetUser struct {
 	Login string `json:"login"`
 	Image []byte `json:"image"`
 }
 
-type RegisterPerson struct {
+type RegisterUser struct {
 	Email    string `json:"email"`
 	Login    string `json:"login"`
 	Password string `json:"password"`

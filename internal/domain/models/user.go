@@ -2,7 +2,7 @@ package models
 
 import "github.com/google/uuid"
 
-type Person struct {
+type User struct {
 	Id           uuid.UUID `json:"id" db:"id"`
 	Login        string    `json:"login" db:"login"`
 	Email        string    `json:"email" db:"email"`

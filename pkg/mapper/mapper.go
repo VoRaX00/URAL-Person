@@ -5,15 +5,15 @@ import (
 	"persons/internal/domain/models"
 )
 
-func PersonToGet(person models.Person) domain.GetPerson {
-	return domain.GetPerson{
+func UserToGet(person models.User) domain.GetUser {
+	return domain.GetUser{
 		Login: person.Login,
 		Image: person.Image,
 	}
 }
 
-func RegisterToPerson(person domain.RegisterPerson) models.Person {
-	return models.Person{
+func RegisterToUser(person domain.RegisterUser) models.User {
+	return models.User{
 		Login:        person.Login,
 		Email:        person.Email,
 		PasswordHash: person.Password,

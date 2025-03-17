@@ -37,7 +37,7 @@ func main() {
 	cfg := config.MustConfig[Config](path)
 	cfg.DB.Password = os.Getenv("DB_PASSWORD")
 
-	db, err := sqlx.Open(cfg.DB.Driver, fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+	db, err := sqlx.Open(cfg.DB.Driver, fmt.Sprintf("host=%s port=%d users=%s password=%s dbname=%s sslmode=%s",
 		cfg.DB.Host, cfg.DB.Port, cfg.DB.Username, cfg.DB.Password, cfg.DB.DBName, cfg.DB.SSLMode))
 	if err != nil {
 		panic(err)

@@ -14,12 +14,12 @@ import (
 )
 
 type Saver interface {
-	Save(person models.Person) error
+	Save(user models.User) error
 }
 
 type Provider interface {
-	GetById(id uuid.UUID) (*models.Person, error)
-	GetAll() ([]models.Person, error)
+	GetById(id uuid.UUID) (*models.User, error)
+	GetAll() ([]models.User, error)
 }
 
 type Service struct {
@@ -38,59 +38,59 @@ func NewService(log *slog.Logger,
 	}
 }
 
-func (s *Service) GetAll() ([]domain.GetPerson, error) {
+func (s *Service) GetAll() ([]domain.GetUser, error) {
 	const op = "service.GetAll"
 	log := s.log.With(
 		slog.String("op", op),
 	)
 
-	log.Info("getting all persons")
+	log.Info("getting all users")
 	result, err := s.provider.GetAll()
 	if err != nil {
-		log.Error("failed to get all persons", slog.String("err", err.Error()))
+		log.Error("failed to get all users", slog.String("err", err.Error()))
 		return nil, err
 	}
-	log.Info("got all persons")
+	log.Info("got all users")
 
-	persons := make([]domain.GetPerson, len(result))
-	log.Info("mapping all persons")
-	for i, person := range result {
-		persons[i] = mapper.PersonToGet(person)
+	users := make([]domain.GetUser, len(result))
+	log.Info("mapping all users")
+	for i, user := range result {
+		users[i] = mapper.UserToGet(user)
 	}
-	log.Info("got all persons")
-	return persons, nil
+	log.Info("got all users")
+	return users, nil
 }
 
-func (s *Service) GetById(id uuid.UUID) (*domain.GetPerson, error) {
+func (s *Service) GetById(id uuid.UUID) (*domain.GetUser, error) {
 	const op = "service.GetById"
 	log := s.log.With(
 		slog.String("op", op),
 	)
 
-	log.Info("getting person by id")
+	log.Info("getting users by id")
 	res, err := s.provider.GetById(id)
 	if err != nil {
 		if errors.Is(err, postgres.ErrNotFound) {
-			log.Error("person not found")
+			log.Error("users not found")
 			return nil, fmt.Errorf("%s: %w", op, service.ErrNotFound)
 		}
-		log.Error("failed to get person by id", slog.String("err", err.Error()))
+		log.Error("failed to get users by id", slog.String("err", err.Error()))
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	log.Info("got person by id")
+	log.Info("got users by id")
 
-	person := mapper.PersonToGet(*res)
-	return &person, nil
+	user := mapper.UserToGet(*res)
+	return &user, nil
 }
 
-func (s *Service) Create(person domain.RegisterPerson) (uuid.UUID, error) {
+func (s *Service) Create(user domain.RegisterUser) (uuid.UUID, error) {
 	const op = "service.Create"
 	log := s.log.With(
 		slog.String("op", op),
 	)
 
-	log.Info("creating person")
-	result := mapper.RegisterToPerson(person)
+	log.Info("creating users")
+	result := mapper.RegisterToUser(user)
 	result.Id = uuid.New()
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(result.PasswordHash), bcrypt.DefaultCost)
@@ -103,12 +103,12 @@ func (s *Service) Create(person domain.RegisterPerson) (uuid.UUID, error) {
 	err = s.saver.Save(result)
 	if err != nil {
 		if errors.Is(err, postgres.ErrAlreadyExists) {
-			log.Error("conflict save person")
+			log.Error("conflict save users")
 			return uuid.Nil, fmt.Errorf("%s: %w", op, service.ErrAlreadyExists)
 		}
-		log.Error("failed to save person", slog.String("err", err.Error()))
+		log.Error("failed to save users", slog.String("err", err.Error()))
 		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
 	}
-	log.Info("person created")
+	log.Info("users created")
 	return result.Id, nil
 }

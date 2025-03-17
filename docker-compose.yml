@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15
-    container_name: person-pg
+    container_name: users-pg
     restart: always
     environment:
       POSTGRES_USER: postgres
